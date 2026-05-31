@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="description" content="怪物血量计算器 - 正向计算与反推模式，支持V1/V2/V3类型，等级1-110，反推等级时自动匹配最接近值">
-    <title>怪物血量计算器 | 正向 + 智能反推</title>
+    <title>双游戏血量计算器 | 原神 + 星穹铁道 (完整反推)</title>
     <style>
         * {
             margin: 0;
@@ -21,22 +20,21 @@
             padding: 2rem 1.5rem;
         }
         .container {
-            max-width: 820px;
+            max-width: 900px;
             width: 100%;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1.5rem;
+            gap: 1.2rem;
         }
         .main-title {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 700;
             color: #000000;
-            letter-spacing: -0.3px;
         }
         .subtitle {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #2c3e2f;
             font-family: monospace;
@@ -44,27 +42,44 @@
             padding: 0.2rem 1rem;
             border-radius: 40px;
         }
-        .divider {
-            width: 48px;
-            border-top: 1px solid #eaeaea;
+        .game-selector {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 0.25rem 0;
+        }
+        .game-btn {
+            background: transparent;
+            border: 1px solid #aaaaaa;
+            padding: 0.4rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #2c3e2f;
+            transition: 0.2s;
+        }
+        .game-btn.active {
+            background-color: #000000;
+            border-color: #000000;
+            color: #ffffff;
         }
         .mode-switch {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            margin: 0.5rem 0;
+            margin: 0.25rem 0;
         }
         .mode-btn {
             background: transparent;
             border: 1px solid #aaaaaa;
-            padding: 0.4rem 1.2rem;
-            font-size: 0.9rem;
+            padding: 0.3rem 1.2rem;
+            font-size: 0.85rem;
             font-weight: 500;
             border-radius: 40px;
             cursor: pointer;
             color: #2c3e2f;
-            transition: all 0.2s;
         }
         .mode-btn.active {
             background-color: #000000;
@@ -75,7 +90,7 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
+            gap: 1rem;
             margin-top: 0.2rem;
         }
         .row {
@@ -85,13 +100,13 @@
             justify-content: space-between;
             gap: 0.8rem;
             border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 0.7rem;
+            padding-bottom: 0.6rem;
         }
         .row-label {
             font-size: 0.85rem;
             font-weight: 600;
             color: #1e2a2e;
-            min-width: 145px;
+            min-width: 150px;
             text-align: left;
         }
         .row-label small {
@@ -115,13 +130,11 @@
         .type-btn {
             background: transparent;
             border: 1px solid #aaaaaa;
-            padding: 0.3rem 0.9rem;
+            padding: 0.25rem 0.9rem;
             font-size: 0.8rem;
-            font-weight: 500;
             border-radius: 30px;
             cursor: pointer;
             color: #2c3e2f;
-            transition: all 0.2s;
         }
         .type-btn.active {
             background-color: #000000;
@@ -130,29 +143,28 @@
         }
         .num-input {
             width: 150px;
-            padding: 0.45rem 0.7rem;
+            padding: 0.4rem 0.7rem;
             font-size: 0.85rem;
-            border: 1px solid #cccccc;
+            border: 1px solid #ccc;
             border-radius: 12px;
             font-family: monospace;
             text-align: center;
-            background: #fff;
         }
         .num-input:focus {
             outline: none;
-            border-color: #000000;
+            border-color: #000;
         }
         .percent-wrapper {
             display: inline-flex;
             align-items: center;
             background: #fff;
-            border: 1px solid #cccccc;
+            border: 1px solid #ccc;
             border-radius: 12px;
             padding: 0 0 0 8px;
         }
         .percent-input {
             width: 110px;
-            padding: 0.45rem 0.2rem;
+            padding: 0.4rem 0.2rem;
             font-size: 0.85rem;
             border: none;
             background: transparent;
@@ -165,29 +177,25 @@
             padding-right: 8px;
             color: #3a3a3a;
         }
-        .percent-wrapper:focus-within {
-            border-color: #000000;
-        }
         .result-box {
             border: 2px solid #000000;
             background: transparent;
-            padding: 1.4rem 2rem;
-            min-width: 260px;
+            padding: 1rem 1.5rem;
+            min-width: 240px;
         }
         .hp-number {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            color: #000000;
+            color: #000;
             word-break: break-word;
-            line-height: 1.2;
         }
         .warning-text {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 500;
             color: #c0392b;
         }
         .info-text {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #e67e22;
         }
         .level-hint {
@@ -201,415 +209,374 @@
             display: flex;
             gap: 1rem;
             justify-content: flex-end;
-            align-items: center;
             flex-wrap: wrap;
         }
         .radio-group label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #1e2a2e;
-            cursor: pointer;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-        }
-        .inverse-result {
-            margin-top: 0.5rem;
-            padding: 0.8rem;
-            background: #f9f9f9;
-            border-radius: 16px;
-            text-align: center;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #2c3e2f;
-            border: 1px solid #e0e0e0;
+            gap: 0.2rem;
         }
         .foldable-content {
             width: 100%;
-            transition: all 0.3s ease;
         }
         .hidden {
             display: none;
         }
         .note {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: #888;
             text-align: center;
             margin-top: 0.5rem;
         }
-        @media (max-width: 580px) {
-            .row {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 0.5rem;
-            }
-            .row-control {
-                justify-content: flex-start;
-            }
-            .row-label {
-                min-width: auto;
-            }
-            .hp-number {
-                font-size: 2rem;
-            }
-            .result-box {
-                padding: 1rem;
-                min-width: 200px;
-            }
-            .main-title {
-                font-size: 2rem;
-            }
-            .num-input, .percent-input {
-                width: 100%;
-            }
-            .percent-wrapper {
-                width: 100%;
-            }
-            .radio-group {
-                justify-content: flex-start;
-            }
+        @media (max-width: 600px) {
+            .row { flex-direction: column; align-items: stretch; }
+            .row-control { justify-content: flex-start; }
+            .row-label { min-width: auto; }
+            .num-input, .percent-input { width: 100%; }
+            .percent-wrapper { width: 100%; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="main-title">怪物血量计算</div>
+    <div class="main-title">游戏血量计算工具</div>
     <div class="subtitle">怪物血量 = 等级基础血量 × 相对血量 × 环境血量系数</div>
-    <div class="divider"></div>
+
+    <div class="game-selector">
+        <button id="gameGenshinBtn" class="game-btn active">原神</button>
+        <button id="gameStarRailBtn" class="game-btn">崩坏·星穹铁道</button>
+    </div>
 
     <div class="mode-switch">
-        <button id="normalModeBtn" class="mode-btn active">正向计算模式</button>
+        <button id="normalModeBtn" class="mode-btn active">正向计算</button>
         <button id="inverseModeBtn" class="mode-btn">反推模式</button>
     </div>
 
-    <!-- 正向计算区域 -->
-    <div id="normalPanel" class="foldable-content">
-        <div class="result-box">
-            <div class="hp-number" id="hpDisplay">—</div>
-        </div>
-        <div class="panel">
-            <div class="row">
-                <div class="row-label">怪物类型 <small>(V1/V2/V3)</small></div>
-                <div class="row-control">
-                    <div class="type-group" id="normalTypeGroup">
-                        <button data-type="v1" class="type-btn active">V1</button>
-                        <button data-type="v2" class="type-btn">V2</button>
-                        <button data-type="v3" class="type-btn">V3</button>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">怪物等级 <small>(1 ~ 110)</small></div>
-                <div class="row-control">
-                    <input type="number" id="normalLevel" class="num-input" step="1" min="1" max="110" placeholder="1-110">
-                    <div class="level-hint">支持等级 1 ~ 110</div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">相对血量 C <small>(小数 ≥0)</small></div>
-                <div class="row-control">
-                    <input type="number" id="normalRel" class="num-input" step="0.01" placeholder="例: 1.85">
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">环境血量系数 D <small>(百分数 %)</small></div>
-                <div class="row-control">
-                    <div class="percent-wrapper">
-                        <input type="number" id="normalEnvPercent" class="percent-input" step="1" placeholder="例: 120">
-                        <span class="percent-symbol">%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="note">※ 相对血量填小数，环境系数填百分数，最终血量四舍五入取整。</div>
-    </div>
+    <div id="normalPanel" class="foldable-content"></div>
+    <div id="inversePanel" class="foldable-content hidden"></div>
 
-    <!-- 反推计算区域（初始隐藏，动态隐藏待推算字段） -->
-    <div id="inversePanel" class="foldable-content hidden">
-        <div class="panel">
-            <div class="row">
-                <div class="row-label">怪物类型 <small>(V1/V2/V3)</small></div>
-                <div class="row-control">
-                    <div class="type-group" id="inverseTypeGroup">
-                        <button data-type="v1" class="type-btn active">V1</button>
-                        <button data-type="v2" class="type-btn">V2</button>
-                        <button data-type="v3" class="type-btn">V3</button>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">需要反推的内容</div>
-                <div class="row-control">
-                    <div class="radio-group" id="inverseTargetGroup">
-                        <label><input type="radio" name="inverseTarget" value="level" checked> 怪物等级</label>
-                        <label><input type="radio" name="inverseTarget" value="rel"> 相对血量 C</label>
-                        <label><input type="radio" name="inverseTarget" value="env"> 环境血量系数 D</label>
-                    </div>
-                </div>
-            </div>
-            <!-- 动态行：怪物等级 (仅在非反推等级时显示) -->
-            <div class="row" id="inverseLevelRow">
-                <div class="row-label">怪物等级 <small>(1~110)</small></div>
-                <div class="row-control">
-                    <input type="number" id="inverseLevel" class="num-input" step="1" min="1" max="110" placeholder="输入等级">
-                </div>
-            </div>
-            <!-- 动态行：相对血量 (仅在非反推相对血量时显示) -->
-            <div class="row" id="inverseRelRow">
-                <div class="row-label">相对血量 C <small>(小数)</small></div>
-                <div class="row-control">
-                    <input type="number" id="inverseRel" class="num-input" step="0.01" placeholder="例: 1.85">
-                </div>
-            </div>
-            <!-- 动态行：环境系数 (仅在非反推环境系数时显示) -->
-            <div class="row" id="inverseEnvRow">
-                <div class="row-label">环境血量系数 D <small>(百分数%)</small></div>
-                <div class="row-control">
-                    <div class="percent-wrapper">
-                        <input type="number" id="inverseEnvPercent" class="percent-input" step="1" placeholder="例: 120">
-                        <span class="percent-symbol">%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="row-label">已知血量 A</div>
-                <div class="row-control">
-                    <input type="number" id="inverseHp" class="num-input" step="1" placeholder="请输入已知血量">
-                </div>
-            </div>
-        </div>
-        <div class="result-box" id="inverseResultBox">
-            <div class="hp-number" id="inverseResultDisplay">—</div>
-        </div>
-        <div class="note">※ 选择需要反推的内容后，系统自动隐藏对应的输入框，填写其余三项已知数据即可得到结果。<br>
-        反推等级时会自动匹配最接近的等级（1-110范围内精确计算）。</div>
-    </div>
+    <div class="note">※ 相对血量填小数，环境系数填百分数，最终血量四舍五入取整。反推等级时自动匹配最接近等级。<br>星穹铁道反推模式：请先选择「常规/混沌回忆」，再指定需要反推的变量。</div>
 </div>
 
 <script>
-    // ==================== 基础血量数据 ====================
-    const originalV1V3 = {
-        1:  { v1: 72.917, v3: 557.348 }, 2:  { v1: 92.628, v3: 601.813 }, 3:  { v1: 114.394, v3: 646.289 },
-        4:  { v1: 138.215, v3: 690.773 }, 5:  { v1: 164.093, v3: 735.271 }, 6:  { v1: 192.050, v3: 800.346 },
-        7:  { v1: 222.075, v3: 864.992 }, 8:  { v1: 237.820, v3: 937.331 }, 9:  { v1: 261.734, v3: 1018.474 },
-        10: { v1: 286.604, v3: 1108.597 }, 11: { v1: 326.883, v3: 1207.876 }, 12: { v1: 368.759, v3: 1320.186 },
-        13: { v1: 412.257, v3: 1443.134 }, 14: { v1: 460.521, v3: 1576.804 }, 15: { v1: 510.583, v3: 1745.154 },
-        16: { v1: 562.470, v3: 1918.324 }, 17: { v1: 624.878, v3: 2091.648 }, 18: { v1: 679.928, v3: 2263.876 },
-        19: { v1: 736.002, v3: 2439.166 }, 20: { v1: 885.200, v3: 2616.499 }, 21: { v1: 932.013, v3: 2795.963 },
-        22: { v1: 979.483, v3: 2977.520 }, 23: { v1: 1023.665, v3: 3157.426 }, 24: { v1: 1083.859, v3: 3338.214 },
-        25: { v1: 1145.135, v3: 3519.939 }, 26: { v1: 1208.108, v3: 3675.534 }, 27: { v1: 1272.347, v3: 3834.672 },
-        28: { v1: 1337.866, v3: 3993.003 }, 29: { v1: 1404.679, v3: 4212.104 }, 30: { v1: 1472.800, v3: 4425.281 },
-        31: { v1: 1554.986, v3: 4632.366 }, 32: { v1: 1638.968, v3: 4838.809 }, 33: { v1: 1708.107, v3: 5046.219 },
-        34: { v1: 2020.002, v3: 5254.296 }, 35: { v1: 2088.602, v3: 5490.696 }, 36: { v1: 2158.307, v3: 5731.348 },
-        37: { v1: 2253.314, v3: 5976.640 }, 38: { v1: 2357.923, v3: 6224.597 }, 39: { v1: 2464.276, v3: 6479.394 },
-        40: { v1: 2694.850, v3: 6733.467 }, 41: { v1: 2825.175, v3: 6993.765 }, 42: { v1: 2957.735, v3: 7278.413 },
-        43: { v1: 3083.906, v3: 7581.559 }, 44: { v1: 3212.145, v3: 7901.326 }, 45: { v1: 3593.158, v3: 8314.087 },
-        46: { v1: 3718.717, v3: 8719.312 }, 47: { v1: 3934.572, v3: 9140.842 }, 48: { v1: 4154.840, v3: 9578.769 },
-        49: { v1: 4379.584, v3: 10035.072 }, 50: { v1: 4996.484, v3: 10506.988 }, 51: { v1: 5224.296, v3: 10934.147 },
-        52: { v1: 5454.721, v3: 11381.334 }, 53: { v1: 5687.789, v3: 11834.353 }, 54: { v1: 5923.530, v3: 12293.348 },
-        55: { v1: 6146.911, v3: 12942.117 }, 56: { v1: 6333.418, v3: 13519.994 }, 57: { v1: 6572.412, v3: 14104.068 },
-        58: { v1: 6835.256, v3: 14694.347 }, 59: { v1: 7101.442, v3: 15306.693 }, 60: { v1: 8381.255, v3: 15925.400 },
-        61: { v1: 8657.451, v3: 16543.044 }, 62: { v1: 8961.233, v3: 17298.514 }, 63: { v1: 9268.137, v3: 18065.479 },
-        64: { v1: 9668.123, v3: 18835.308 }, 65: { v1: 9982.893, v3: 19737.681 }, 66: { v1: 10241.751, v3: 20461.945 },
-        67: { v1: 11265.319, v3: 21197.868 }, 68: { v1: 11619.708, v3: 21922.558 }, 69: { v1: 11949.945, v3: 22656.236 },
-        70: { v1: 13051.973, v3: 23383.140 }, 71: { v1: 13410.890, v3: 24106.686 }, 72: { v1: 13805.528, v3: 24845.382 },
-        73: { v1: 14092.246, v3: 25467.782 }, 74: { v1: 14504.316, v3: 26085.553 }, 75: { v1: 14920.829, v3: 26979.084 },
-        76: { v1: 15265.360, v3: 27741.537 }, 77: { v1: 15663.969, v3: 28499.895 }, 78: { v1: 16066.612, v3: 29225.818 },
-        79: { v1: 16439.806, v3: 29993.688 }, 80: { v1: 18565.728, v3: 30727.601 }, 81: { v1: 18947.873, v3: 31450.486 },
-        82: { v1: 19333.387, v3: 32177.634 }, 83: { v1: 19573.309, v3: 32908.111 }, 84: { v1: 20178.598, v3: 33642.098 },
-        85: { v1: 20424.360, v3: 34632.098 }, 86: { v1: 20823.050, v3: 35389.941 }, 87: { v1: 21244.643, v3: 36201.671 },
-        88: { v1: 21718.221, v3: 37068.530 }, 89: { v1: 22197.342, v3: 38051.661 }, 90: { v1: 24354.088, v3: 39054.039 },
-        91: { v1: 24932.386, v3: 40064.674 }, 92: { v1: 25570.902, v3: 41063.409 }, 93: { v1: 26217.759, v3: 42394.301 },
-        94: { v1: 27122.644, v3: 43705.879 }, 95: { v1: 27748.839, v3: 45837.586 }, 96: { v1: 27923.106, v3: 47692.741 },
-        97: { v1: 28116.287, v3: 49483.945 }, 98: { v1: 30658.233, v3: 51202.363 }, 99: { v1: 30869.965, v3: 52846.806 },
-        100: { v1: 36765.123, v3: 54379.214 }, 101: { v1: 37633.564, v3: 55840.810 }, 102: { v1: 38516.773, v3: 57298.407 },
-        103: { v1: 39414.935, v3: 58749.266 }, 104: { v1: 40328.237, v3: 59846.451 }, 105: { v1: 43463.103, v3: 61203.228 },
-        106: { v1: 44457.706, v3: 61712.104 }, 107: { v1: 45468.829, v3: 62222.618 }, 108: { v1: 46496.663, v3: 62734.772 },
-        109: { v1: 47541.397, v3: 63248.575 }, 110: { v1: 53502.316, v3: 63764.026 }
+    // ======================= 1. 原神数据 =======================
+    const genshinV1V3 = { 1:72.917,2:92.628,3:114.394,4:138.215,5:164.093,6:192.05,7:222.075,8:237.82,9:261.734,10:286.604,11:326.883,12:368.759,13:412.257,14:460.521,15:510.583,16:562.47,17:624.878,18:679.928,19:736.002,20:885.2,21:932.013,22:979.483,23:1023.665,24:1083.859,25:1145.135,26:1208.108,27:1272.347,28:1337.866,29:1404.679,30:1472.8,31:1554.986,32:1638.968,33:1708.107,34:2020.002,35:2088.602,36:2158.307,37:2253.314,38:2357.923,39:2464.276,40:2694.85,41:2825.175,42:2957.735,43:3083.906,44:3212.145,45:3593.158,46:3718.717,47:3934.572,48:4154.84,49:4379.584,50:4996.484,51:5224.296,52:5454.721,53:5687.789,54:5923.53,55:6146.911,56:6333.418,57:6572.412,58:6835.256,59:7101.442,60:8381.255,61:8657.451,62:8961.233,63:9268.137,64:9668.123,65:9982.893,66:10241.751,67:11265.319,68:11619.708,69:11949.945,70:13051.973,71:13410.89,72:13805.528,73:14092.246,74:14504.316,75:14920.829,76:15265.36,77:15663.969,78:16066.612,79:16439.806,80:18565.728,81:18947.873,82:19333.387,83:19573.309,84:20178.598,85:20424.36,86:20823.05,87:21244.643,88:21718.221,89:22197.342,90:24354.088,91:24932.386,92:25570.902,93:26217.759,94:27122.644,95:27748.839,96:27923.106,97:28116.287,98:30658.233,99:30869.965,100:36765.123,101:37633.564,102:38516.773,103:39414.935,104:40328.237,105:43463.103,106:44457.706,107:45468.829,108:46496.663,109:47541.397,110:53502.316 };
+    const genshinV2 = { 1:73.42,2:93.289,3:115.237,4:139.266,5:165.379,6:193.599,7:223.916,8:239.844,9:264.02,10:289.169,11:330.773,12:374.083,13:419.129,14:469.225,15:521.255,16:575.254,17:640.217,18:697.853,19:786.963,20:851.125,21:916.916,22:984.334,23:1052.13,24:1121.129,25:1191.353,26:1255.221,27:1322.928,28:1393.131,29:1488.315,30:1584.97,31:1683.133,32:1784.843,33:1890.934,34:2001.498,35:2127.689,36:2260.648,37:2398.972,38:2541.917,39:2691.184,40:2845.847,41:3006.931,42:3182.917,43:3371.801,44:3573.107,45:3823.187,46:4077.436,47:4346.025,48:4629.38,49:4928.888,50:5243.532,51:5512.657,52:5796.984,53:6090.197,54:6392.746,55:6803.885,56:7187.701,57:7582.394,58:7988.528,59:8416.959,60:8858.943,61:9310.857,62:9852.285,63:10411.526,64:10983.546,65:11646.846,66:12221.556,67:12815.884,68:13414.004,69:14030.204,70:14652.097,71:15283.167,72:15983.959,73:16647.155,74:17341.355,75:18333.969,76:19284.01,77:20273.352,78:21278.437,79:22358.461,80:23636.617,81:24891.897,82:26169.664,83:27414.775,84:28658.141,85:30198.154,86:31476.423,87:32775.532,88:34096.898,89:35506.446,90:37100.288,91:38469.364,92:39857.283,93:41617.237,94:43354.762,95:45428.66,96:47481.525,97:49509.206,98:51500.591,99:53452.947,100:55460.019,101:57231.991,102:59062.668,103:60935.104,104:62363.241,105:64128.538,106:65542.992,107:66649.245,108:67766.47,109:68894.757,110:70195.73 };
+    function getGenshinBase(level, type) {
+        if (type === 'v2') return (genshinV2[level] || 0) * 2;
+        return genshinV1V3[level] || 0;
+    }
+
+    // ========== 星穹铁道精确数据 (严格按提供数值) ==========
+    const starCommonBase = {
+        1:74.4000000692904,2:97.65000000433065,3:102.3000000086613,4:126.71417406038381,5:132.874866069993,
+        6:139.1457630742807,7:145.52714407537133,8:152.0191950746812,9:158.62238107575104,10:165.33670207858086,
+        11:176.93863814114593,12:188.5405739871785,13:200.14251004974358,14:211.74435304664075,15:223.34628910920583,
+        16:234.9482250418514,17:246.55016110441647,18:258.15200410131365,19:269.7539401638787,20:281.3558760099113,
+        21:301.97658001841046,22:322.59728409186937,23:343.21798810036853,24:363.8386921088677,25:384.4593960957136,
+        26:405.08019303996116,27:425.7008970484603,28:446.3216010569595,29:466.94230510876514,30:487.56300905230455,
+        31:527.3853301119525,32:567.2075579543598,33:607.0298790140077,34:646.8522000736557,35:686.6745211116504,
+        36:726.4968421712983,37:766.3190700786654,38:806.1413910733536,39:845.9637120463885,40:885.7860331060365,
+        41:1003.110462059034,42:1120.4349840560462,43:1237.759506009752,44:1355.0839351576287,45:1472.4084571113344,
+        46:1589.7329790433869,47:1707.0574080613442,48:1824.3819300150499,49:1941.706452098675,50:2059.0308810300194,
+        51:2343.4623600086197,52:2627.89383905218,53:2912.32531803078,54:3196.7567970743403,55:3481.1882760529406,
+        56:3765.6197550965007,57:4050.051234075101,58:4334.482713053701,59:4618.914192097262,60:4903.345671075862,
+        61:5296.391757140402,62:5689.437843053369,63:6082.483929052949,64:6475.530015052529,65:6868.576101117069,
+        66:7261.622187094996,67:7654.668273029616,68:8047.714359094156,69:8440.760445158696,70:8833.806531093316
     };
-    const originalV2 = {
-        1: 73.420, 2: 93.289, 3: 115.237, 4: 139.266, 5: 165.379, 6: 193.599, 7: 223.916, 8: 239.844, 9: 264.020, 10: 289.169,
-        11: 330.773, 12: 374.083, 13: 419.129, 14: 469.225, 15: 521.255, 16: 575.254, 17: 640.217, 18: 697.853, 19: 786.963, 20: 851.125,
-        21: 916.916, 22: 984.334, 23: 1052.130, 24: 1121.129, 25: 1191.353, 26: 1255.221, 27: 1322.928, 28: 1393.131, 29: 1488.315, 30: 1584.970,
-        31: 1683.133, 32: 1784.843, 33: 1890.934, 34: 2001.498, 35: 2127.689, 36: 2260.648, 37: 2398.972, 38: 2541.917, 39: 2691.184, 40: 2845.847,
-        41: 3006.931, 42: 3182.917, 43: 3371.801, 44: 3573.107, 45: 3823.187, 46: 4077.436, 47: 4346.025, 48: 4629.380, 49: 4928.888, 50: 5243.532,
-        51: 5512.657, 52: 5796.984, 53: 6090.197, 54: 6392.746, 55: 6803.885, 56: 7187.701, 57: 7582.394, 58: 7988.528, 59: 8416.959, 60: 8858.943,
-        61: 9310.857, 62: 9852.285, 63: 10411.526, 64: 10983.546, 65: 11646.846, 66: 12221.556, 67: 12815.884, 68: 13414.004, 69: 14030.204, 70: 14652.097,
-        71: 15283.167, 72: 15983.959, 73: 16647.155, 74: 17341.355, 75: 18333.969, 76: 19284.010, 77: 20273.352, 78: 21278.437, 79: 22358.461, 80: 23636.617,
-        81: 24891.897, 82: 26169.664, 83: 27414.775, 84: 28658.141, 85: 30198.154, 86: 31476.423, 87: 32775.532, 88: 34096.898, 89: 35506.446, 90: 37100.288,
-        91: 38469.364, 92: 39857.283, 93: 41617.237, 94: 43354.762, 95: 45428.660, 96: 47481.525, 97: 49509.206, 98: 51500.591, 99: 53452.947, 100: 55460.019,
-        101: 57231.991, 102: 59062.668, 103: 60935.104, 104: 62363.241, 105: 64128.538, 106: 65542.992, 107: 66649.245, 108: 67766.470, 109: 68894.757, 110: 70195.730
+    const starRegular71_100 = {
+        71:9326.928336032666,72:9820.050234124297,73:10313.172132086009,74:10806.294030026067,75:11299.41583505203,
+        76:11792.537733143661,77:12285.65963108372,78:12778.781529045431,79:13271.903427072102,80:13765.025232011452,
+        81:14460.33117604279,82:15181.363431091653,83:15929.073852087138,84:16704.449634075863,85:17508.514242099132,
+        86:18342.32927101222,87:19206.99546907679,88:20103.65431799856,89:21033.489522042917,90:21997.728588072583,
+        91:22997.64459301578,92:24034.55748600606,93:25109.836041072384,94:26224.899996090448,95:27381.22126209503,
+        96:28580.326527039986,97:29823.79855802469,98:31113.27908412111,99:32450.47047012672,100:33837.13785614376
     };
-    const baseHpData = {};
-    for (let lvl = 1; lvl <= 110; lvl++) {
-        baseHpData[lvl] = { v1: originalV1V3[lvl].v1, v2: originalV2[lvl] * 2, v3: originalV1V3[lvl].v3 };
-    }
-    function getBaseHp(level, type) { return baseHpData[level]?.[type] ?? null; }
-
-    // ==================== 正向计算 ====================
-    const normalLevel = document.getElementById('normalLevel');
-    const normalRel = document.getElementById('normalRel');
-    const normalEnvPercent = document.getElementById('normalEnvPercent');
-    const hpDisplay = document.getElementById('hpDisplay');
-    let normalType = 'v1';
-    function updateNormalUI() {
-        const levelRaw = normalLevel.value.trim();
-        if (levelRaw === '') { hpDisplay.innerHTML = '<span class="warning-text">请输入等级</span>'; return; }
-        const level = parseInt(levelRaw);
-        if (isNaN(level) || level < 1 || level > 110) { hpDisplay.innerHTML = '<span class="warning-text">等级需为1~110</span>'; return; }
-        const base = getBaseHp(level, normalType);
-        if (!base) { hpDisplay.innerHTML = '<span class="warning-text">无此等级数据</span>'; return; }
-        const relRaw = normalRel.value.trim();
-        if (relRaw === '') { hpDisplay.innerHTML = '<span class="info-text">请填写相对血量</span>'; return; }
-        const rel = parseFloat(relRaw);
-        if (isNaN(rel) || rel < 0) { hpDisplay.innerHTML = '<span class="info-text">相对血量需≥0的数字</span>'; return; }
-        const envRaw = normalEnvPercent.value.trim();
-        if (envRaw === '') { hpDisplay.innerHTML = '<span class="info-text">请填写环境系数</span>'; return; }
-        const envPct = parseFloat(envRaw);
-        if (isNaN(envPct) || envPct < 0) { hpDisplay.innerHTML = '<span class="info-text">环境系数需≥0的百分数</span>'; return; }
-        const env = envPct / 100;
-        const finalHp = Math.round(base * rel * env);
-        hpDisplay.innerText = finalHp.toLocaleString();
-    }
-    document.querySelectorAll('#normalTypeGroup .type-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#normalTypeGroup .type-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            normalType = btn.dataset.type;
-            updateNormalUI();
-        });
-    });
-    [normalLevel, normalRel, normalEnvPercent].forEach(el => el.addEventListener('input', updateNormalUI));
-    normalLevel.addEventListener('change', function() { let v = parseInt(this.value); if (!isNaN(v)) this.value = Math.min(110, Math.max(1, v)); updateNormalUI(); });
-
-    // ==================== 反推模式逻辑（动态隐藏字段 + 智能等级匹配） ====================
-    let inverseType = 'v1';
-    let inverseTarget = 'level';
-    const inverseLevelInput = document.getElementById('inverseLevel');
-    const inverseRelInput = document.getElementById('inverseRel');
-    const inverseEnvInput = document.getElementById('inverseEnvPercent');
-    const inverseHpInput = document.getElementById('inverseHp');
-    const inverseResultSpan = document.getElementById('inverseResultDisplay');
-    const levelRow = document.getElementById('inverseLevelRow');
-    const relRow = document.getElementById('inverseRelRow');
-    const envRow = document.getElementById('inverseEnvRow');
-
-    function updateFieldsVisibility() {
-        if (inverseTarget === 'level') {
-            levelRow.classList.add('hidden');
-            relRow.classList.remove('hidden');
-            envRow.classList.remove('hidden');
-        } else if (inverseTarget === 'rel') {
-            levelRow.classList.remove('hidden');
-            relRow.classList.add('hidden');
-            envRow.classList.remove('hidden');
-        } else { // env
-            levelRow.classList.remove('hidden');
-            relRow.classList.remove('hidden');
-            envRow.classList.add('hidden');
-        }
-    }
-
-    function updateInverseUI() {
-        const type = inverseType;
-        const target = inverseTarget;
-        const levelRaw = inverseLevelInput.value.trim();
-        const relRaw = inverseRelInput.value.trim();
-        const envRaw = inverseEnvInput.value.trim();
-        const hpRaw = inverseHpInput.value.trim();
-        const level = (target !== 'level' && levelRaw !== '') ? parseInt(levelRaw) : null;
-        const rel = (target !== 'rel' && relRaw !== '') ? parseFloat(relRaw) : null;
-        const envPct = (target !== 'env' && envRaw !== '') ? parseFloat(envRaw) : null;
-        const env = envPct !== null ? envPct / 100 : null;
-        const hp = hpRaw === '' ? null : parseFloat(hpRaw);
-        if (target === 'level') {
-            if (rel === null || env === null || hp === null) { inverseResultSpan.innerText = '请填写相对血量、环境系数和已知血量'; return; }
-            if (rel <= 0 || env <= 0 || hp <= 0) { inverseResultSpan.innerText = '系数与血量需为正数'; return; }
-            let bestLevel = null;
-            let minDiff = Infinity;
-            for (let lvl = 1; lvl <= 110; lvl++) {
-                const base = getBaseHp(lvl, type);
-                if (base) {
-                    const calcHp = base * rel * env;
-                    const diff = Math.abs(calcHp - hp);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        bestLevel = lvl;
-                    }
-                }
-            }
-            if (bestLevel !== null) {
-                const bestBase = getBaseHp(bestLevel, type);
-                const actualHp = bestBase * rel * env;
-                inverseResultSpan.innerHTML = `推算最接近等级：${bestLevel}<br>(理论血量 ${Math.round(actualHp).toLocaleString()}，差异 ${Math.round(minDiff).toLocaleString()})`;
-            } else {
-                inverseResultSpan.innerText = '未找到匹配等级';
-            }
-        } else if (target === 'rel') {
-            if (level === null || level < 1 || level > 110) { inverseResultSpan.innerText = '请填写有效的等级(1~110)'; return; }
-            if (env === null || hp === null) { inverseResultSpan.innerText = '请填写环境系数和已知血量'; return; }
-            if (env <= 0 || hp <= 0) { inverseResultSpan.innerText = '系数与血量需为正数'; return; }
-            const base = getBaseHp(level, type);
-            if (!base) { inverseResultSpan.innerText = '该等级无基础血量数据'; return; }
-            const relCalc = hp / (base * env);
-            if (relCalc < 0) inverseResultSpan.innerText = '计算结果为负数，请检查输入';
-            else inverseResultSpan.innerText = `推算相对血量 C = ${relCalc.toFixed(6)}`;
-        } else if (target === 'env') {
-            if (level === null || level < 1 || level > 110) { inverseResultSpan.innerText = '请填写有效的等级(1~110)'; return; }
-            if (rel === null || hp === null) { inverseResultSpan.innerText = '请填写相对血量和已知血量'; return; }
-            if (rel <= 0 || hp <= 0) { inverseResultSpan.innerText = '血量与相对血量需为正数'; return; }
-            const base = getBaseHp(level, type);
-            if (!base) { inverseResultSpan.innerText = '该等级无基础血量数据'; return; }
-            const envCalc = hp / (base * rel);
-            if (envCalc < 0) inverseResultSpan.innerText = '计算结果为负数，请检查输入';
-            else inverseResultSpan.innerText = `推算环境血量系数 D = ${(envCalc * 100).toFixed(4)}%`;
-        }
-    }
-
-    // 监听类型切换
-    document.querySelectorAll('#inverseTypeGroup .type-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#inverseTypeGroup .type-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            inverseType = btn.dataset.type;
-            updateInverseUI();
-        });
-    });
-    // 监听反推目标切换（同时更新显示/隐藏字段）
-    document.querySelectorAll('input[name="inverseTarget"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            inverseTarget = e.target.value;
-            updateFieldsVisibility();
-            updateInverseUI();
-        });
-    });
-    // 监听所有输入变化
-    [inverseLevelInput, inverseRelInput, inverseEnvInput, inverseHpInput].forEach(el => el.addEventListener('input', updateInverseUI));
-
-    // ==================== 模式切换 ====================
-    const normalPanelDiv = document.getElementById('normalPanel');
-    const inversePanelDiv = document.getElementById('inversePanel');
-    const normalModeBtn = document.getElementById('normalModeBtn');
-    const inverseModeBtn = document.getElementById('inverseModeBtn');
-    function setMode(normalActive) {
-        if (normalActive) {
-            normalPanelDiv.classList.remove('hidden');
-            inversePanelDiv.classList.add('hidden');
-            normalModeBtn.classList.add('active');
-            inverseModeBtn.classList.remove('active');
+    const starChaos71_100 = {
+        71:9533.403774039354,72:10233.001017050352,73:10932.598260083003,74:11632.195503029041,75:12331.792746061692,
+        76:13031.38998907269,77:13730.98732504109,78:14430.584568052087,79:15130.181811084738,80:15829.779054095736,
+        81:16714.268016069196,82:17642.981361080892,83:18618.13044307963,84:19642.037007096922,85:20717.13886211696,
+        86:21845.99583312194,87:23031.29562005005,88:24275.860401083948,89:25582.653342072386,90:26954.786037063226,
+        91:28395.525390009396,92:29908.30161308963,93:31496.716689101653,94:33164.55255606584,95:34915.78012807737,
+        96:36754.56915305648,97:38685.29760616645,98:40712.56247709459,99:42841.19065210945,100:45076.25016615051
+    };
+    function getStarRailBase(level, type) {
+        if (type === 'normal') {
+            if (level <= 70) return starCommonBase[level] || 0;
+            if (level <= 100) return starRegular71_100[level] || 0;
+            return 0;
         } else {
-            normalPanelDiv.classList.add('hidden');
-            inversePanelDiv.classList.remove('hidden');
-            normalModeBtn.classList.remove('active');
-            inverseModeBtn.classList.add('active');
-            updateFieldsVisibility();
+            if (level <= 70) return starCommonBase[level] || 0;
+            if (level <= 100) return starChaos71_100[level] || 0;
+            if (level === 120) return 180305.000664104;
+            return 0;
+        }
+    }
+
+    // 全局状态
+    let currentGame = 'genshin';
+    let currentStarRailSubType = 'normal';
+    let isNormalMode = true;
+    let inverseTarget = 'level';
+
+    function getMaxLevel() {
+        if (currentGame === 'genshin') return 110;
+        if (currentStarRailSubType === 'chaos') return 120;
+        return 100;
+    }
+    function getBaseHp(level, type) {
+        if (currentGame === 'genshin') return getGenshinBase(level, type);
+        return getStarRailBase(level, type);
+    }
+
+    // 更新游戏切换按钮的样式（独立函数，确保高亮正确）
+    function updateGameButtonsStyle() {
+        const genshinBtn = document.getElementById('gameGenshinBtn');
+        const starRailBtn = document.getElementById('gameStarRailBtn');
+        if (currentGame === 'genshin') {
+            genshinBtn.classList.add('active');
+            starRailBtn.classList.remove('active');
+        } else {
+            genshinBtn.classList.remove('active');
+            starRailBtn.classList.add('active');
+        }
+    }
+
+    // 渲染面板 (完全重建，保证反推时类型选择独立)
+    function renderPanels() {
+        const normalContainer = document.getElementById('normalPanel');
+        const inverseContainer = document.getElementById('inversePanel');
+        // 正向面板
+        let normalTypeHtml = '';
+        if (currentGame === 'genshin') {
+            normalTypeHtml = `<button data-type="v1" class="type-btn active">V1</button><button data-type="v2" class="type-btn">V2</button><button data-type="v3" class="type-btn">V3</button>`;
+        } else {
+            normalTypeHtml = `<button data-type="normal" class="type-btn ${currentStarRailSubType === 'normal' ? 'active' : ''}">常规</button><button data-type="chaos" class="type-btn ${currentStarRailSubType === 'chaos' ? 'active' : ''}">混沌回忆</button>`;
+        }
+        const normalHtml = `
+            <div class="result-box"><div class="hp-number" id="hpDisplay">—</div></div>
+            <div class="panel">
+                <div class="row"><div class="row-label">怪物类型 <small>${currentGame === 'genshin' ? '(V1/V2/V3)' : '常规 / 混沌回忆'}</small></div>
+                    <div class="row-control"><div class="type-group" id="normalTypeGroup">${normalTypeHtml}</div></div>
+                </div>
+                <div class="row"><div class="row-label">怪物等级 <small>(1~${getMaxLevel()})</small></div>
+                    <div class="row-control"><input type="number" id="normalLevel" class="num-input" step="1" placeholder="等级"></div>
+                </div>
+                <div class="row"><div class="row-label">相对血量 C <small>(小数)</small></div>
+                    <div class="row-control"><input type="number" id="normalRel" class="num-input" step="0.01" placeholder="例:1.85"></div>
+                </div>
+                <div class="row"><div class="row-label">环境血量系数 D <small>(百分数%)</small></div>
+                    <div class="row-control"><div class="percent-wrapper"><input type="number" id="normalEnvPercent" class="percent-input" step="1" placeholder="例:120"><span class="percent-symbol">%</span></div></div>
+                </div>
+            </div>
+        `;
+        // 反推面板: 独立类型选择 + 反推目标 + 动态输入
+        let inverseTypeHtml = '';
+        if (currentGame === 'genshin') {
+            inverseTypeHtml = `<button data-type="v1" class="type-btn active">V1</button><button data-type="v2" class="type-btn">V2</button><button data-type="v3" class="type-btn">V3</button>`;
+        } else {
+            inverseTypeHtml = `<button data-type="normal" class="type-btn ${currentStarRailSubType === 'normal' ? 'active' : ''}">常规</button><button data-type="chaos" class="type-btn ${currentStarRailSubType === 'chaos' ? 'active' : ''}">混沌回忆</button>`;
+        }
+        const inverseHtml = `
+            <div class="panel">
+                <div class="row"><div class="row-label">怪物类型 <small>${currentGame === 'genshin' ? '(V1/V2/V3)' : '常规 / 混沌回忆'}</small></div>
+                    <div class="row-control"><div class="type-group" id="inverseTypeGroup">${inverseTypeHtml}</div></div>
+                </div>
+                <div class="row"><div class="row-label">需要反推的内容</div>
+                    <div class="row-control"><div class="radio-group" id="inverseTargetGroup">
+                        <label><input type="radio" name="inverseTarget" value="level" ${inverseTarget === 'level' ? 'checked' : ''}> 怪物等级</label>
+                        <label><input type="radio" name="inverseTarget" value="rel" ${inverseTarget === 'rel' ? 'checked' : ''}> 相对血量 C</label>
+                        <label><input type="radio" name="inverseTarget" value="env" ${inverseTarget === 'env' ? 'checked' : ''}> 环境血量系数 D</label>
+                    </div></div>
+                </div>
+                <div class="row" id="invLevelRow"><div class="row-label">怪物等级</div><div class="row-control"><input type="number" id="inverseLevel" class="num-input" step="1" placeholder="等级"></div></div>
+                <div class="row" id="invRelRow"><div class="row-label">相对血量 C</div><div class="row-control"><input type="number" id="inverseRel" class="num-input" step="0.01" placeholder="小数"></div></div>
+                <div class="row" id="invEnvRow"><div class="row-label">环境血量系数 D</div><div class="row-control"><div class="percent-wrapper"><input type="number" id="inverseEnvPercent" class="percent-input" step="1" placeholder="百分数"><span class="percent-symbol">%</span></div></div></div>
+                <div class="row"><div class="row-label">已知血量 A</div><div class="row-control"><input type="number" id="inverseHp" class="num-input" step="1" placeholder="已知血量"></div></div>
+            </div>
+            <div class="result-box"><div class="hp-number" id="inverseResultDisplay">—</div></div>
+        `;
+        normalContainer.innerHTML = normalHtml;
+        inverseContainer.innerHTML = inverseHtml;
+        bindNormalEvents();
+        bindInverseEvents();
+        if (isNormalMode) updateNormalUI();
+        else { updateFieldVisibility(); updateInverseUI(); }
+    }
+
+    // 正向逻辑
+    function updateNormalUI() {
+        const level = parseInt(document.getElementById('normalLevel')?.value);
+        const rel = parseFloat(document.getElementById('normalRel')?.value);
+        const envPct = parseFloat(document.getElementById('normalEnvPercent')?.value);
+        const hpSpan = document.getElementById('hpDisplay');
+        if (!hpSpan) return;
+        if (isNaN(level) || level < 1 || level > getMaxLevel()) { hpSpan.innerHTML = '<span class="warning-text">等级范围错误</span>'; return; }
+        let type = document.querySelector('#normalTypeGroup .type-btn.active')?.dataset.type;
+        if (!type) return;
+        const base = getBaseHp(level, type);
+        if (!base || base === 0) { hpSpan.innerHTML = '<span class="warning-text">无该等级数据</span>'; return; }
+        if (isNaN(rel)) { hpSpan.innerHTML = '<span class="info-text">请填相对血量</span>'; return; }
+        if (isNaN(envPct)) { hpSpan.innerHTML = '<span class="info-text">请填环境系数</span>'; return; }
+        if (rel < 0 || envPct < 0) { hpSpan.innerHTML = '<span class="warning-text">数值须≥0</span>'; return; }
+        const finalHp = Math.round(base * rel * (envPct / 100));
+        hpSpan.innerText = finalHp.toLocaleString();
+    }
+
+    // 反推逻辑 (完全独立，基于当前反推面板的类型选择)
+    function updateInverseUI() {
+        const target = document.querySelector('input[name="inverseTarget"]:checked')?.value || 'level';
+        const type = document.querySelector('#inverseTypeGroup .type-btn.active')?.dataset.type;
+        const resultSpan = document.getElementById('inverseResultDisplay');
+        if (!resultSpan || !type) return;
+        const levelVal = document.getElementById('inverseLevel')?.value;
+        const relVal = document.getElementById('inverseRel')?.value;
+        const envPctVal = document.getElementById('inverseEnvPercent')?.value;
+        const hpVal = document.getElementById('inverseHp')?.value;
+        if (target === 'level') {
+            const rel = parseFloat(relVal); const envPct = parseFloat(envPctVal); const hp = parseFloat(hpVal);
+            if (isNaN(rel) || isNaN(envPct) || isNaN(hp)) { resultSpan.innerText = '请填写相对血量、环境系数和已知血量'; return; }
+            if (rel <= 0 || envPct <= 0 || hp <= 0) { resultSpan.innerText = '数值需为正数'; return; }
+            let bestLevel = null, minDiff = Infinity;
+            for (let lvl = 1; lvl <= getMaxLevel(); lvl++) {
+                const base = getBaseHp(lvl, type);
+                if (base) { const calc = base * rel * (envPct / 100); const diff = Math.abs(calc - hp); if (diff < minDiff) { minDiff = diff; bestLevel = lvl; } }
+            }
+            if (bestLevel) resultSpan.innerText = `最接近等级：${bestLevel} (误差≈${Math.round(minDiff).toLocaleString()})`;
+            else resultSpan.innerText = '未找到匹配等级';
+        } else if (target === 'rel') {
+            const lvl = parseInt(levelVal); const envPct = parseFloat(envPctVal); const hp = parseFloat(hpVal);
+            if (isNaN(lvl) || lvl < 1 || lvl > getMaxLevel()) { resultSpan.innerText = '有效等级必填'; return; }
+            if (isNaN(envPct) || isNaN(hp) || envPct <= 0 || hp <= 0) { resultSpan.innerText = '环境系数/血量需为正数'; return; }
+            const base = getBaseHp(lvl, type);
+            if (!base) { resultSpan.innerText = '无基础血量'; return; }
+            const rel = hp / (base * (envPct / 100));
+            resultSpan.innerText = `相对血量 C = ${rel.toFixed(6)}`;
+        } else {
+            const lvl = parseInt(levelVal); const rel = parseFloat(relVal); const hp = parseFloat(hpVal);
+            if (isNaN(lvl) || lvl < 1 || lvl > getMaxLevel()) { resultSpan.innerText = '有效等级必填'; return; }
+            if (isNaN(rel) || isNaN(hp) || rel <= 0 || hp <= 0) { resultSpan.innerText = '相对血量/血量需为正数'; return; }
+            const base = getBaseHp(lvl, type);
+            if (!base) { resultSpan.innerText = '无基础血量'; return; }
+            const envDec = hp / (base * rel);
+            resultSpan.innerText = `环境系数 D = ${(envDec * 100).toFixed(4)}%`;
+        }
+    }
+
+    function updateFieldVisibility() {
+        const target = document.querySelector('input[name="inverseTarget"]:checked')?.value || 'level';
+        const levelRow = document.getElementById('invLevelRow');
+        const relRow = document.getElementById('invRelRow');
+        const envRow = document.getElementById('invEnvRow');
+        if (!levelRow) return;
+        if (target === 'level') { levelRow.style.display = 'none'; relRow.style.display = 'flex'; envRow.style.display = 'flex'; }
+        else if (target === 'rel') { levelRow.style.display = 'flex'; relRow.style.display = 'none'; envRow.style.display = 'flex'; }
+        else { levelRow.style.display = 'flex'; relRow.style.display = 'flex'; envRow.style.display = 'none'; }
+    }
+
+    // 事件绑定 (正向)
+    function bindNormalEvents() {
+        const normalTypeBtns = document.querySelectorAll('#normalTypeGroup .type-btn');
+        normalTypeBtns.forEach(btn => {
+            btn.removeEventListener('click', normalTypeHandler);
+            btn.addEventListener('click', normalTypeHandler);
+        });
+        const levelInp = document.getElementById('normalLevel');
+        const relInp = document.getElementById('normalRel');
+        const envInp = document.getElementById('normalEnvPercent');
+        if(levelInp) levelInp.addEventListener('input', updateNormalUI);
+        if(relInp) relInp.addEventListener('input', updateNormalUI);
+        if(envInp) envInp.addEventListener('input', updateNormalUI);
+        if(levelInp) levelInp.addEventListener('change', function() { let v = parseInt(this.value); if(!isNaN(v)) this.value = Math.min(getMaxLevel(), Math.max(1, v)); updateNormalUI(); });
+    }
+    function normalTypeHandler(e) {
+        const btn = e.currentTarget;
+        const group = btn.parentElement;
+        group.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (currentGame === 'starrail') {
+            const newSub = btn.dataset.type;
+            if (newSub === 'normal' || newSub === 'chaos') {
+                currentStarRailSubType = newSub;
+                renderPanels();  // 刷新整个界面以同步最大等级和按钮状态
+                return;
+            }
+        }
+        updateNormalUI();
+    }
+
+    // 反推事件绑定 (独立)
+    function bindInverseEvents() {
+        const invTypeBtns = document.querySelectorAll('#inverseTypeGroup .type-btn');
+        invTypeBtns.forEach(btn => {
+            btn.removeEventListener('click', inverseTypeHandler);
+            btn.addEventListener('click', inverseTypeHandler);
+        });
+        const radios = document.querySelectorAll('input[name="inverseTarget"]');
+        radios.forEach(radio => radio.addEventListener('change', () => { updateFieldVisibility(); updateInverseUI(); }));
+        const inputs = ['inverseLevel','inverseRel','inverseEnvPercent','inverseHp'];
+        inputs.forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', updateInverseUI); });
+    }
+    function inverseTypeHandler(e) {
+        const btn = e.currentTarget;
+        const group = btn.parentElement;
+        group.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (currentGame === 'starrail') {
+            const newSub = btn.dataset.type;
+            if (newSub === 'normal' || newSub === 'chaos') {
+                currentStarRailSubType = newSub;
+                renderPanels();  // 完全重绘，保证反推面板中的类型与全局同步
+                return;
+            }
+        }
+        updateInverseUI();
+    }
+
+    // 切换游戏 (同时更新按钮样式)
+    function switchGame(game) {
+        currentGame = game;
+        if (game === 'starrail') currentStarRailSubType = 'normal';
+        isNormalMode = true;
+        // 更新游戏按钮高亮
+        updateGameButtonsStyle();
+        // 重置模式按钮样式
+        document.getElementById('normalModeBtn').classList.add('active');
+        document.getElementById('inverseModeBtn').classList.remove('active');
+        document.getElementById('inversePanel').classList.add('hidden');
+        document.getElementById('normalPanel').classList.remove('hidden');
+        renderPanels();
+    }
+    function setMode(normal) {
+        isNormalMode = normal;
+        const normalDiv = document.getElementById('normalPanel');
+        const inverseDiv = document.getElementById('inversePanel');
+        if (normal) {
+            normalDiv.classList.remove('hidden');
+            inverseDiv.classList.add('hidden');
+            document.getElementById('normalModeBtn').classList.add('active');
+            document.getElementById('inverseModeBtn').classList.remove('active');
+            updateNormalUI();
+        } else {
+            normalDiv.classList.add('hidden');
+            inverseDiv.classList.remove('hidden');
+            document.getElementById('normalModeBtn').classList.remove('active');
+            document.getElementById('inverseModeBtn').classList.add('active');
+            updateFieldVisibility();
             updateInverseUI();
         }
     }
-    normalModeBtn.addEventListener('click', () => setMode(true));
-    inverseModeBtn.addEventListener('click', () => setMode(false));
-    updateNormalUI();
-    updateFieldsVisibility();
+
+    // 初始化事件与样式
+    document.getElementById('gameGenshinBtn').addEventListener('click', () => switchGame('genshin'));
+    document.getElementById('gameStarRailBtn').addEventListener('click', () => switchGame('starrail'));
+    document.getElementById('normalModeBtn').addEventListener('click', () => setMode(true));
+    document.getElementById('inverseModeBtn').addEventListener('click', () => setMode(false));
+    
+    // 初始渲染
+    updateGameButtonsStyle();
+    renderPanels();
 </script>
 </body>
 </html>
